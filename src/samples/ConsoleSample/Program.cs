@@ -2,7 +2,22 @@
 using Jab;
 
 namespace ConsoleSample
-{
+{ 
+    public class Network
+    {
+    }
+
+    public class WalletManager
+    {
+        public WalletManager(Network network)
+        {
+        }
+    }
+
+    public class KeyManager
+    {
+    }
+
     public abstract partial class BaseViewModel
     {
     }
@@ -82,10 +97,14 @@ namespace ConsoleSample
     public partial class AddWalletViewModel : BaseViewModel
     {
         private IServiceProvider _serviceProvider;
+        private WalletManager _walletManager;
+        private KeyManager _keyManager;
         
         public AddWalletViewModel(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
+            _walletManager = (WalletManager)serviceProvider.GetService(typeof(WalletManager));
+            _keyManager = (KeyManager)serviceProvider.GetService(typeof(KeyManager));
             Console.WriteLine("AddWalletViewModel()");
         }
     }
