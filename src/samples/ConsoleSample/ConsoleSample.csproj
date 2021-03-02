@@ -7,7 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Jab" Version="0.0.2-beta.67" PrivateAssets="all" />
+<!--    <PackageReference Include="Jab" Version="0.0.2-beta.67" PrivateAssets="all" />-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Jab\Jab.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Jab\Attributes.cs">
+      <Link>Attributes.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>
