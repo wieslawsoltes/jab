@@ -183,6 +183,9 @@ namespace ConsoleSample
         static void Main(string[] args)
         {
             var service = new ServiceProvider();
+ 
+            // Without using IServiceProvider
+            var network1 = service.GetService<Network>();
 
             IServiceProvider serviceProvider = service;
 
