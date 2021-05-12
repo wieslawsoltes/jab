@@ -3,20 +3,40 @@ using Jab;
 
 namespace ConsoleSample
 { 
+    //
+    // BACKEND
+    //
+
     public class Network
     {
     }
 
     public class WalletManager
     {
+        public Network Network { get; }
+
         public WalletManager(Network network)
         {
+            Network = network;
+            Console.WriteLine($"WalletManager Network {network is not null}");
         }
     }
 
     public class KeyManager
     {
     }
+
+    [ServiceProviderModule]
+    [Singleton(typeof(Network))]
+    [Singleton(typeof(WalletManager))]
+    [Singleton(typeof(KeyManager))]
+    public interface IBackendModule
+    {
+    }
+    
+    //
+    // FRONTEND
+    //
 
     public abstract partial class BaseViewModel
     {
@@ -73,16 +93,6 @@ namespace ConsoleSample
         }
     }
 
-    [ServiceProviderModule]
-    [Transient(typeof(OptimisePrivacyViewModel))]
-    [Transient(typeof(PrivacyControlViewModel))]
-    [Transient(typeof(PrivacySuggestionControlViewModel))]
-    [Transient(typeof(SendViewModel))]
-    [Transient(typeof(TransactionPreviewViewModel))]
-    public interface IWalletSendModule
-    {
-    }
-
     public partial class ReceiveViewModel : BaseViewModel
     {
         private IServiceProvider _serviceProvider;
@@ -103,23 +113,33 @@ namespace ConsoleSample
         public AddWalletViewModel(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
+
             _walletManager = (WalletManager)serviceProvider.GetService(typeof(WalletManager));
+            Console.WriteLine($"AddWalletViewModel WalletManager {_walletManager is not null}");
+
             _keyManager = (KeyManager)serviceProvider.GetService(typeof(KeyManager));
+            Console.WriteLine($"AddWalletViewModel KeyManager {_keyManager is not null}");
+
             Console.WriteLine("AddWalletViewModel()");
         }
     }
 
-    [ServiceProvider]
-    [Singleton(typeof(IServiceProvider), typeof(ServiceProvider))]
-    [Singleton(typeof(Program))]
-    [Singleton(typeof(Logger))]
+    [ServiceProviderModule]
+    [Transient(typeof(OptimisePrivacyViewModel))]
+    [Transient(typeof(PrivacyControlViewModel))]
+    [Transient(typeof(PrivacySuggestionControlViewModel))]
+    [Transient(typeof(SendViewModel))]
+    [Transient(typeof(TransactionPreviewViewModel))]
     [Scoped(typeof(ReceiveViewModel))]
     [Singleton(typeof(AddWalletViewModel))]
-    [Import(typeof(IWalletSendModule))]
-    partial class ServiceProvider
+    public interface IFrontendModule
     {
     }
 
+    //
+    // COMMON
+    //
+    
     public class Logger
     {
         public void Log(string message)
@@ -133,6 +153,24 @@ namespace ConsoleSample
         }
     }
 
+    //
+    // ServiceProvider
+    //
+    
+    [ServiceProvider]
+    [Singleton(typeof(IServiceProvider), typeof(ServiceProvider))]
+    [Singleton(typeof(Program))]
+    [Singleton(typeof(Logger))]
+    [Import(typeof(IFrontendModule))]
+    [Import(typeof(IBackendModule))]
+    partial class ServiceProvider
+    {
+    }
+
+    //
+    // Program
+    //
+    
     class Program
     {
         private readonly Logger _logger;
@@ -147,6 +185,16 @@ namespace ConsoleSample
             var service = new ServiceProvider();
 
             IServiceProvider serviceProvider = service;
+
+            var network = service.GetService<Network>();
+            Console.WriteLine($"Main Network {network is not null}");
+            
+            var walletManager = service.GetService<WalletManager>();
+            Console.WriteLine($"Main WalletManager {walletManager is not null}");
+            Console.WriteLine($"Main WalletManager.Network {walletManager?.Network is not null}");
+
+            var keyManager = service.GetService<KeyManager>();
+            Console.WriteLine($"Main KeyManager {keyManager is not null}");
 
             using (var scope1 = service.CreateScope())
             {
@@ -182,8 +230,8 @@ namespace ConsoleSample
 
         public void Run(string[] args)
         {
-            _logger.Log("Starting");
-            _logger.LogError("Error happened");
+            _logger.Log("[Log] Starting");
+            _logger.LogError("[Log] Error happened");
         }
     }
 }
